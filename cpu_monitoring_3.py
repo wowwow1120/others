@@ -18,14 +18,14 @@ def use_ini_file():
 
     pid_num_list = []
     for processes in process_list:
-        grep_pid = "ps -ef | grep " + str(processes)
+        grep_pid = "ps -ef | grep " + str(processes) + " | grep -v auto"
         grep_pid = subprocess.check_output(grep_pid, shell=True)
         grep_pid = grep_pid.decode()
         grep_pid = grep_pid.split('\n')
         for contents in grep_pid:
             content_list = ' '.join(contents.split()).split(' ')
             if len(content_list) != 1:
-                pid_num = content_list[2]
+                pid_num = content_list[1]
                 pid_num_list.append(pid_num)
 
     return pid_num_list
@@ -48,7 +48,8 @@ def updateit():
     cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
     ram_usage = psutil.virtual_memory().percent
 
-    use_ini_file()
+    pid_num_list = use_ini_file()
+    print(pid_num_list)
     
     # cpu_num = 0
 
