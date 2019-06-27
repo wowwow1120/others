@@ -6,7 +6,7 @@ import psutil
 import threading
 import subprocess
 import configparser
-import time
+import json
 
 
 def use_ini_file():
@@ -41,7 +41,7 @@ def display_progressbar(value, end_value, bar_length=40):
 
 
 def updateit():
-    #time.sleep(5)
+
     threading.Timer(int(sys.argv[1]), updateit).start()
     cpu_count = psutil.cpu_count()
     # cpu_stats = psutil.cpu_stats()
@@ -52,14 +52,17 @@ def updateit():
 
     pid_num_list = use_ini_file()
 
-    print('\n', "CPU_count = ", cpu_count)
+    # print('\n', "CPU_count = ", cpu_count)
     # print('\n', "[CPU_status]", '\n', "ctx_switches = ",cpu_stats[0],'\n',
     #       "interrupts = ",cpu_stats[1],'\n',"soft_interrupts = ",cpu_stats[2],'\n', "syscalls = ",cpu_stats[3])
     # print('\n', "[CPU_freq]", '\n', "current = ",cpu_freq[0], '\n', "min = ",cpu_freq[1],'\n', "max = ",cpu_freq[2])
     # print('\n', "[CPU_load]", '\n', "load = ",cpu_load)
 
+    result = ''
+    warning_result = ''
     for i in range(cpu_count):
         pid_info_list = []
+
         for j in pid_num_list:
             check_command_pid = "ps -o pid -p " + str(j)
             check_command_psr = "ps -o psr -p " + str(j)
@@ -91,8 +94,15 @@ def updateit():
                 pid_info_list.append(x)
 
         per_cpu_usage = cpu_usage[i]
+        if len(pid_info_list) != 0:
+            result += "CPU " + str(i) + " : " + json.dumps(pid_info_list) + str(per_cpu_usage) + '%  || '
+        else:
+            result += "CPU " + str(i) + " : " + str(per_cpu_usage) + '%  || '
 
-        print("CPU", i, " : ", pid_info_list, per_cpu_usage)
+        if str(per_cpu_usage) == "100.0" :
+            warning_result += "CPU " + str(i) + ' , '
+
+        # print("CPU", i, " : ", pid_info_list, per_cpu_usage)
         # print("CPU", cpu_num, " : ", pid_list)
 
         # cpu_usage_bar_value = str(per_cpu_usage).split(',')[0]
@@ -101,8 +111,9 @@ def updateit():
         # # print('\n', "CPU", cpu_num, " : ", i)
         # print(display_progressbar(cpu_usage_bar_value, 100))
         # cpu_num += 1
-
-    print('\n', "--------------")
+    print(result)
+    print('\n',"CPU Usage Warning : ", warning_result)
+    print('\n', "----------------------------------")
 
     print('\n', "RAM_usage : ", ram_usage, '\n')
 
@@ -111,3 +122,5 @@ if __name__ == '__main__':
     interval = sys.argv[1]
 
     updateit()
+    # threading.Timer(int(sys.argv[1]), updateit).start()
+    # time.sleep(5)
